@@ -35,17 +35,37 @@
       <p>探索前端、後端、AI、雲端等專欄。點選文章卡片以閱讀全文。</p>
     </section>
 
-    <section class="controls">
-      <div class="sort">
-        <label>排序：</label>
-        <select id="sortSelect">
-          <option value="new">最新</option>
-          <option value="hot">熱門</option>
-        </select>
-      </div>
-    </section>
+    <div class="layout">
+      <aside class="sidebar">
+        <div class="panel">
+          <h3>分類</h3>
+          <div id="sidebarCategories"></div>
+        </div>
+        <div class="panel">
+          <h3>標籤雲</h3>
+          <div id="tagCloud" class="tag-cloud"></div>
+        </div>
+        <div class="panel">
+          <h3>推薦文章</h3>
+          <div id="recommended"></div>
+        </div>
+      </aside>
 
-    <section id="posts" class="posts-grid"></section>
+      <section class="content">
+        <section class="controls">
+          <div class="sort">
+            <label>排序：</label>
+            <select id="sortSelect">
+              <option value="new">最新</option>
+              <option value="hot">熱門</option>
+            </select>
+          </div>
+        </section>
+
+        <section id="posts" class="posts-grid"></section>
+        <div id="pagination" class="pagination"></div>
+      </section>
+    </div>
   </main>
 
   <footer class="site-footer">
@@ -74,6 +94,8 @@
 
   <!-- dependencies -->
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
   <script src="assets/app.js" type="module"></script>
 </body>
 </html>

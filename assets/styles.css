@@ -20,7 +20,13 @@ html,body{height:100%;margin:0;font-family:Inter,system-ui,-apple-system,"Segoe 
 .hero{padding:28px 0}
 .hero h2{margin:0;font-weight:600}
 .controls{display:flex;justify-content:flex-end;padding-bottom:12px}
-.posts-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:18px;padding-bottom:48px}
+.layout{display:flex;gap:20px}
+.sidebar{width:260px}
+.sidebar .panel{background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.005));padding:12px;border-radius:10px;margin-bottom:12px;border:1px solid rgba(255,255,255,0.02)}
+.tag-cloud{display:flex;flex-wrap:wrap;gap:8px}
+.tag-cloud .tag{padding:6px 10px}
+.content{flex:1}
+.posts-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:18px;padding-bottom:24px}
 .post-card{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border:1px solid rgba(255,255,255,0.03);padding:16px;border-radius:12px;cursor:pointer;transition:transform .15s,box-shadow .15s}
 .post-card:hover{transform:translateY(-6px);box-shadow:0 10px 30px rgba(12,20,30,0.6)}
 .post-title{font-weight:700;margin:0 0 8px 0}
@@ -33,6 +39,18 @@ html,body{height:100%;margin:0;font-family:Inter,system-ui,-apple-system,"Segoe 
 .modal-inner{background:linear-gradient(180deg,#07102222,#051028);width:min(1000px,94%);max-height:86vh;overflow:auto;padding:28px;border-radius:14px;border:1px solid rgba(255,255,255,0.03)}
 .modal-close{position:absolute;right:24px;top:20px;background:transparent;border:0;color:var(--muted);font-size:1.1rem;cursor:pointer}
 article pre{background:#071026;padding:12px;border-radius:8px;overflow:auto}
+.post-card .meta-right{margin-left:auto}
+.pagination{display:flex;gap:8px;justify-content:center;padding:18px 0}
+.pagination button{padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:var(--muted);cursor:pointer}
+
+/* code block / highlight.js baseline (uses dark theme colors) */
+pre code{display:block;padding:12px;border-radius:8px;background:#0b1220;color:#e6eef8;overflow:auto}
+.hljs{display:block;overflow-x:auto;padding:12px;color:#e6eef8;background:#071026;border-radius:8px}
+.hljs-comment{color:#6a7380}
+.hljs-keyword,.hljs-selector-tag,.hljs-literal{color:#7c3aed}
+.hljs-string{color:#22d3ee}
+.hljs-number{color:#f59e0b}
+.hljs-title{color:#60a5fa}
 .article-actions{display:flex;gap:8px;margin-top:12px}
 .article-actions .category-btn{padding:8px 12px}
 .comments-section{margin-top:18px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.02)}
