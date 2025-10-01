@@ -1,0 +1,35 @@
+[
+  {
+    "id": "p1",
+    "title": "用 Tailwind CSS 打造現代化 UI",
+    "category": "前端技術",
+    "tags": ["CSS","Tailwind","設計系統"],
+    "excerpt": "示範如何用 Tailwind 的 utility-first 工具快速建立一致的 UI 元件。",
+    "content": "# Tailwind 快速上手\n\nTailwind 是一個 utility-first CSS 框架，可以讓你用 class 組合樣式...\n\n```html\n<button class=\"px-4 py-2 bg-blue-600 text-white rounded\">Click</button>\n```",
+    "date": "2025-09-20",
+    "views": 420,
+    "likes": 34
+  },
+  {
+    "id": "p2",
+    "title": "建立可擴充的 Node.js API 架構",
+    "category": "後端開發",
+    "tags": ["Node.js","Express","架構"],
+    "excerpt": "示範分層架構、測試與效能考量，為團隊專案建立穩定 API。",
+    "content": "# Node.js API 實作\n\n本文介紹分層架構的概念...",
+    "date": "2025-08-12",
+    "views": 312,
+    "likes": 21
+  },
+  {
+    "id": "p3",
+    "title": "入門指南：用 PyTorch 訓練你的第一個模型",
+    "category": "AI/機器學習",
+    "tags": ["PyTorch","模型訓練","深度學習"],
+    "excerpt": "從資料前處理到訓練 loop，一步步帶你完成第一個深度學習專案。",
+    "content": "# PyTorch 入門\n\n範例程式碼：\n\n```python\nimport torch\n# ...\n```",
+    "date": "2025-07-02",
+    "views": 890,
+    "likes": 102
+  }
+]

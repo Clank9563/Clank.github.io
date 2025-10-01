@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Tech Forum — 技術博客論壇原型</title>
+  <meta name="description" content="專注於技術文章的博客論壇原型，支援分類、搜尋、Markdown 閱讀模式。">
+  <link rel="stylesheet" href="assets/styles.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <h1 class="brand">Tech Forum</h1>
+      <nav class="top-controls">
+        <div style="display:flex;gap:8px;align-items:center">
+          <div class="categories" id="categories"></div>
+          <button id="bookmarksBtn" class="category-btn" title="查看我的書籤">📑 書籤</button>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <div class="search">
+            <input id="searchInput" type="search" placeholder="搜尋文章、標籤或作者...">
+          </div>
+          <button id="themeToggle" class="category-btn" title="切換主題">🌙</button>
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="hero">
+      <h2>技術文章 • 社群討論 • 深度學習</h2>
+      <p>探索前端、後端、AI、雲端等專欄。點選文章卡片以閱讀全文。</p>
+    </section>
+
+    <section class="controls">
+      <div class="sort">
+        <label>排序：</label>
+        <select id="sortSelect">
+          <option value="new">最新</option>
+          <option value="hot">熱門</option>
+        </select>
+      </div>
+    </section>
+
+    <section id="posts" class="posts-grid"></section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">© 2025 Tech Forum 原型 — Demo only</div>
+  </footer>
+
+  <!-- Modal for article -->
+  <div id="articleModal" class="modal hidden" aria-hidden="true">
+    <div class="modal-inner">
+      <button id="closeModal" class="modal-close" aria-label="關閉">✕</button>
+      <article id="articleContent"></article>
+      <div class="article-actions" id="articleActions">
+        <!-- 由 JS 動態填充：like / bookmark / share / comments -->
+      </div>
+      <div id="commentsSection" class="comments-section" style="display:none">
+        <h4>留言</h4>
+        <div id="commentsList"></div>
+        <form id="commentForm">
+          <input id="commentAuthor" placeholder="你的名字（選填）" />
+          <textarea id="commentText" placeholder="寫下你的留言..." rows="3"></textarea>
+          <button type="submit" class="category-btn">送出留言</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- dependencies -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="assets/app.js" type="module"></script>
+</body>
+</html>
