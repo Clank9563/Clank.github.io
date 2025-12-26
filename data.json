@@ -1,7 +1,7 @@
 {
   "metadata": {
-    "lastUpdated": "2025-12-26T07:03:21.843Z",
-    "totalDiscussions": 6
+    "lastUpdated": "2025-12-26T09:02:56.513Z",
+    "totalDiscussions": 7
   },
   "categories": [
     {
@@ -134,6 +134,39 @@
     }
   ],
   "discussions": [
+    {
+      "id": "D_kwDOP6FFPs4Ajabm",
+      "number": 15,
+      "title": "Docker 容器內部時間校正",
+      "body": "# Docker 容器內部時間校正\n\n擁有者: Clank\n\n# Dockerfile\n\n### 使用dockerfile\n\n```docker\nFROM ubuntu:20.04\n\nRUN apt-get update && apt-get install -y \\\n    tzdata && \\\n    rm -rf /var/lib/apt/lists/*\n\nENV TimeZone=Asia/Taipei\n\n```\n\n# container\n\n### 如果是正在運行的容器\n\n```bash\n# 方法1  直接在宿主機操作\ndocker cp /etc/localtime 【容器ID或者NAME】:/etc/localtime\ndocker cp -L /usr/share/zoneinfo/Asia/Taipei 【容器ID或者NAME】:/etc/localtime\n\n# 方法2  登錄容器同步時區timezone，一般是因為時區不同導致時間差\nln -sf /usr/share/zoneinfo/Asia/Taipei  /etc/localtime\n```\n\n### Docker-compose\n\n## # 方法1\n\n### (需要安裝tzdata套件才可正常使用)\n\n1. dockerfile(安裝tzdata套件)\n    \n    ```docker\n    FROM ubuntu:20.04\n    \n    RUN apt-get update && apt-get install -y \\\n        tzdata && \\\n        rm -rf /var/lib/apt/lists/*\n    \n    ```\n    \n2. docker-compose.yml\n    \n    ```yaml\n      environment:\n          - TZ=Asia/Taipei\n    ```\n    \n\n## # 方法2\n\n將宿主機時間掛載到虛擬機上\n\n```yaml\n volumes:\n      - /etc/timezone:/etc/timezone\n      - /etc/localtime:/etc/localtime:ro\n```",
+      "url": "https://github.com/Clank9563/Clank.github.io/discussions/15",
+      "createdAt": "2025-12-26T07:17:09Z",
+      "updatedAt": "2025-12-26T07:17:09Z",
+      "author": {
+        "login": "Clank9563",
+        "avatarUrl": "https://avatars.githubusercontent.com/u/67671298?u=b0c8d36573e43692739fbe9502ba5e7ae319f49a&v=4",
+        "url": "https://github.com/Clank9563"
+      },
+      "category": {
+        "id": "DIC_kwDOP6FFPs4C0PqJ",
+        "name": "Show and tell",
+        "emoji": ":raised_hands:"
+      },
+      "labels": {
+        "nodes": [
+          {
+            "name": "backend",
+            "color": "3742FA"
+          }
+        ]
+      },
+      "comments": {
+        "totalCount": 0
+      },
+      "reactions": {
+        "totalCount": 0
+      }
+    },
     {
       "id": "D_kwDOP6FFPs4AjaYy",
       "number": 11,
