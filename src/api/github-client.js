@@ -956,4 +956,3 @@ class GitHubClient {
 }
 
 export default GitHubClient;
-```
