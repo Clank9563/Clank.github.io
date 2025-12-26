@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>討論詳情 - GitHub Discussions 論壇</title>
+    <link rel="stylesheet" href="src/styles/main.css">
+    <style>
+        /* 討論詳情專用樣式 */
+        .discussion-detail {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-xl);
+            margin-bottom: var(--spacing-xl);
+        }
+
+        .discussion-detail-header {
+            margin-bottom: var(--spacing-xl);
+        }
+
+        .discussion-detail-title {
+            font-size: 2rem;
+            font-weight: 700;
+            margin: var(--spacing-md) 0;
+            line-height: 1.3;
+        }
+
+        .discussion-detail-meta {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-md);
+            margin-top: var(--spacing-lg);
+        }
+
+        .author-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            border: 2px solid var(--accent-primary);
+        }
+
+        .author-name {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .discussion-date {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+
+        .discussion-detail-body {
+            font-size: 1.05rem;
+            line-height: 1.7;
+            padding: var(--spacing-lg) 0;
+            border-top: 1px solid var(--border-color);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .discussion-detail-stats {
+            display: flex;
+            gap: var(--spacing-lg);
+            margin-top: var(--spacing-lg);
+            color: var(--text-secondary);
+        }
+
+        /* 留言區 */
+        .comments-section {
+            margin-top: var(--spacing-xl);
+        }
+
+        .comments-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .comments-list {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-lg);
+        }
+
+        .comment {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-lg);
+        }
+
+        .comment-header {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-md);
+            margin-bottom: var(--spacing-md);
+        }
+
+        .comment-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+        }
+
+        .comment-meta {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .comment-author {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .comment-date {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+
+        .comment-body {
+            padding-left: 52px;
+        }
+
+        .comment-replies {
+            margin-left: var(--spacing-xl);
+            margin-top: var(--spacing-lg);
+            padding-left: var(--spacing-lg);
+            border-left: 2px solid var(--border-color);
+        }
+
+        /* 留言表單 */
+        .comment-form {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-lg);
+            margin-top: var(--spacing-lg);
+        }
+
+        .comment-form textarea {
+            width: 100%;
+            min-height: 120px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: var(--spacing-md);
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 1rem;
+            resize: vertical;
+        }
+
+        .comment-form textarea:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+        }
+
+        .comment-form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: var(--spacing-md);
+            margin-top: var(--spacing-md);
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            color: var(--text-secondary);
+            text-decoration: none;
+            margin-bottom: var(--spacing-lg);
+            transition: color var(--transition-fast);
+        }
+
+        .back-link:hover {
+            color: var(--accent-primary);
+        }
+
+        /* 反應按鈕 */
+        .reaction-buttons {
+            display: flex;
+            gap: var(--spacing-sm);
+            margin-top: var(--spacing-md);
+            padding-top: var(--spacing-md);
+            border-top: 1px solid var(--border-color);
+        }
+
+        .reaction-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--spacing-xs);
+            padding: var(--spacing-xs) var(--spacing-md);
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            font-size: 0.875rem;
+        }
+
+        .reaction-btn:hover {
+            background: var(--bg-hover);
+            border-color: var(--accent-primary);
+            color: var(--text-primary);
+        }
+
+        .reaction-btn.active {
+            background: var(--accent-primary);
+            border-color: var(--accent-primary);
+            color: white;
+        }
+
+        .reaction-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- 導航列 -->
+    <nav class="navbar">
+        <div class="container navbar-content">
+            <a href="index.html" class="navbar-brand">
+                💬 GitHub 論壇
+            </a>
+            <div class="navbar-actions">
+                <div id="userInfo"></div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 主要內容 -->
+    <main class="main-content">
+        <div class="container">
+            <a href="index.html" class="back-link">
+                ← 返回討論列表
+            </a>
+
+            <!-- 討論詳情 -->
+            <div id="discussionDetail">
+                <!-- 討論內容將在這裡動態載入 -->
+            </div>
+
+            <!-- 留言表單（需登入） -->
+            <div id="commentFormContainer"></div>
+        </div>
+    </main>
+
+    <!-- 配置 -->
+    <script>
+        window.GITHUB_CONFIG = {
+            owner: 'Clank9563',
+            repo: 'Clank.github.io'
+        };
+    </script>
+
+    <!-- 主應用程式 -->
+    <script type="module">
+        import GitHubClient from './src/api/github-client.js';
+        import * as auth from './src/api/auth.js';
+        import * as ui from './src/js/ui.js';
+        import { getQueryParam, handleError } from './src/js/utils.js';
+
+        const client = new GitHubClient(
+            window.GITHUB_CONFIG.owner,
+            window.GITHUB_CONFIG.repo
+        );
+
+        let currentUser = null;
+        let currentDiscussion = null;
+
+        // 載入使用者資訊
+        async function loadUser() {
+            try {
+                currentUser = await client.getCurrentUser();
+                ui.renderUserInfo(currentUser, document.getElementById('userInfo'));
+
+                const loginBtn = document.getElementById('loginBtn');
+                const logoutBtn = document.getElementById('logoutBtn');
+
+                if (loginBtn) {
+                    loginBtn.addEventListener('click', auth.login);
+                }
+
+                if (logoutBtn) {
+                    logoutBtn.addEventListener('click', auth.logout);
+                }
+
+                // 如果已登入，顯示留言表單
+                if (currentUser) {
+                    renderCommentForm();
+                }
+            } catch (error) {
+                console.error('Failed to load user:', error);
+                ui.renderUserInfo(null, document.getElementById('userInfo'));
+
+                const loginBtn = document.getElementById('loginBtn');
+                if (loginBtn) {
+                    loginBtn.addEventListener('click', auth.login);
+                }
+            }
+        }
+
+        // 載入討論詳情
+        async function loadDiscussion() {
+            const number = getQueryParam('number');
+
+            if (!number) {
+                ui.renderError('找不到討論編號', document.getElementById('discussionDetail'));
+                return;
+            }
+
+            try {
+                ui.renderLoading(document.getElementById('discussionDetail'));
+                currentDiscussion = await client.getDiscussion(number);
+                ui.renderDiscussionDetail(currentDiscussion, document.getElementById('discussionDetail'), currentUser);
+
+                // 綁定按讚按鈕事件
+                setupReactionButtons();
+            } catch (error) {
+                ui.renderError(handleError(error, 'loadDiscussion'), document.getElementById('discussionDetail'));
+            }
+        }
+
+        // 設定反應按鈕事件
+        function setupReactionButtons() {
+            // 討論按讚按鈕
+            const likeBtn = document.getElementById('likeBtn');
+            if (likeBtn) {
+                likeBtn.addEventListener('click', async () => {
+                    if (!currentUser) {
+                        alert('請先登入');
+                        return;
+                    }
+
+                    likeBtn.disabled = true;
+                    try {
+                        await client.addDiscussionReaction(currentDiscussion.id);
+                        const likeCount = document.getElementById('likeCount');
+                        likeCount.textContent = parseInt(likeCount.textContent) + 1;
+                        likeBtn.classList.add('active');
+                    } catch (error) {
+                        alert('按讚失敗：' + handleError(error));
+                    } finally {
+                        likeBtn.disabled = false;
+                    }
+                });
+            }
+
+            // 置頂按鈕
+            const pinBtn = document.getElementById('pinBtn');
+            if (pinBtn && currentUser) {
+                pinBtn.addEventListener('click', async () => {
+                    pinBtn.disabled = true;
+
+                    // 從 localStorage 獲取置頂列表
+                    const pinnedDiscussions = JSON.parse(localStorage.getItem('pinnedDiscussions') || '[]');
+                    const discussionId = currentDiscussion.id;
+                    const isPinned = pinnedDiscussions.includes(discussionId);
+
+                    try {
+                        if (isPinned) {
+                            // 取消置頂：從列表中移除
+                            const index = pinnedDiscussions.indexOf(discussionId);
+                            pinnedDiscussions.splice(index, 1);
+                            localStorage.setItem('pinnedDiscussions', JSON.stringify(pinnedDiscussions));
+                            alert('已取消置頂');
+                        } else {
+                            // 置頂：加入列表
+                            pinnedDiscussions.push(discussionId);
+                            localStorage.setItem('pinnedDiscussions', JSON.stringify(pinnedDiscussions));
+                            alert('已置頂討論');
+                        }
+                        // 重新載入以更新狀態
+                        await loadDiscussion();
+                    } catch (error) {
+                        alert(`${isPinned ? '取消置頂' : '置頂'}失敗：` + handleError(error));
+                    } finally {
+                        pinBtn.disabled = false;
+                    }
+                });
+            }
+
+            // 留言按讚按鈕
+            document.querySelectorAll('.comment-like-btn').forEach(btn => {
+                btn.addEventListener('click', async () => {
+                    if (!currentUser) {
+                        alert('請先登入');
+                        return;
+                    }
+
+                    const commentId = btn.dataset.commentId;
+                    btn.disabled = true;
+
+                    try {
+                        await client.addCommentReaction(commentId);
+                        const countSpan = btn.querySelector('.comment-like-count');
+                        countSpan.textContent = parseInt(countSpan.textContent) + 1;
+                        btn.classList.add('active');
+                    } catch (error) {
+                        alert('按讚失敗：' + handleError(error));
+                    } finally {
+                        btn.disabled = false;
+                    }
+                });
+            });
+        }
+
+        // 渲染留言表單
+        function renderCommentForm() {
+            const container = document.getElementById('commentFormContainer');
+            container.innerHTML = `
+        <div class="comment-form">
+          <h3>發表留言</h3>
+          <textarea id="commentBody" placeholder="輸入您的留言（支援 Markdown）..."></textarea>
+          <div class="comment-form-actions">
+            <button class="btn btn-primary" id="submitCommentBtn">
+              💬 發表留言
+            </button>
+          </div>
+        </div>
+      `;
+
+            document.getElementById('submitCommentBtn').addEventListener('click', submitComment);
+        }
+
+        // 提交留言
+        async function submitComment() {
+            const body = document.getElementById('commentBody').value.trim();
+
+            if (!body) {
+                alert('請輸入留言內容');
+                return;
+            }
+
+            if (!currentDiscussion) {
+                alert('找不到討論');
+                return;
+            }
+
+            try {
+                const btn = document.getElementById('submitCommentBtn');
+                btn.disabled = true;
+                btn.textContent = '發表中...';
+
+                await client.addComment(currentDiscussion.id, body);
+
+                // 重新載入討論以顯示新留言
+                await loadDiscussion();
+
+                // 清空表單
+                document.getElementById('commentBody').value = '';
+
+                alert('留言發表成功！');
+            } catch (error) {
+                alert('留言發表失敗：' + handleError(error, 'submitComment'));
+            } finally {
+                const btn = document.getElementById('submitCommentBtn');
+                btn.disabled = false;
+                btn.textContent = '💬 發表留言';
+            }
+        }
+
+        // 初始化
+        async function init() {
+            await loadUser();
+            await loadDiscussion();
+        }
+
+        init();
+    </script>
+</body>
+
+</html>

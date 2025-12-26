@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>分類討論 - GitHub Discussions 論壇</title>
+    <link rel="stylesheet" href="src/styles/main.css">
+</head>
+
+<body>
+    <!-- 導航列 -->
+    <nav class="navbar">
+        <div class="container navbar-content">
+            <a href="index.html" class="navbar-brand">
+                💬 clank的個人博客
+            </a>
+            <div class="navbar-actions">
+                <div id="userInfo"></div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 主要內容 -->
+    <main class="main-content">
+        <div class="container">
+            <a href="index.html" class="back-link">
+                ← 返回論壇首頁
+            </a>
+
+            <!-- 分類標題 -->
+            <div class="discussions-header">
+                <h1 id="categoryTitle">📋 載入中...</h1>
+                <button class="btn btn-primary" id="newDiscussionBtn" style="display: none;">
+                    ✏️ 發起討論
+                </button>
+            </div>
+
+            <!-- 討論列表 -->
+            <div class="discussions-grid" id="discussionsList">
+                <!-- 討論卡片將在這裡動態載入 -->
+            </div>
+
+            <!-- 載入更多 -->
+            <div style="text-align: center; margin-top: 2rem;">
+                <button class="btn btn-secondary" id="loadMoreBtn" style="display: none;">
+                    載入更多
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <!-- 配置 -->
+    <script>
+        window.GITHUB_CONFIG = {
+            owner: 'Clank9563',
+            repo: 'Clank.github.io'
+        };
+    </script>
+
+    <!-- 主應用程式 -->
+    <script type="module">
+        import GitHubClient from './src/api/github-client.js';
+        import * as auth from './src/api/auth.js';
+        import * as ui from './src/js/ui.js';
+        import { handleError, getQueryParam } from './src/js/utils.js';
+
+        // 分類名稱對應表（英文 -> 中文）
+        const categoryNameMap = {
+            'Announcements': '公告',
+            'General': '交流討論區',
+            'Ideas': '建議與想法',
+            'Polls': '投票',
+            'Q&A': '問答區',
+            'Show and tell': '教學與範例區'
+        };
+
+        // Emoji 代碼對應表
+        const emojiMap = {
+            ':mega:': '📢',
+            ':speech_balloon:': '💬',
+            ':bulb:': '💡',
+            ':ballot_box:': '🗳️',
+            ':question:': '❓',
+            ':raised_hands:': '📝',
+            ':pray:': '🙏'
+        };
+
+        // 翻譯分類名稱
+        function translateCategoryName(name) {
+            return categoryNameMap[name] || name;
+        }
+
+        const client = new GitHubClient(
+            window.GITHUB_CONFIG.owner,
+            window.GITHUB_CONFIG.repo
+        );
+
+        let currentUser = null;
+        let currentCategoryId = '';
+        let currentCategoryName = '';
+        let discussions = [];
+        let hasNextPage = false;
+        let endCursor = null;
+
+        // 載入使用者資訊
+        async function loadUser() {
+            try {
+                currentUser = await client.getCurrentUser();
+                ui.renderUserInfo(currentUser, document.getElementById('userInfo'));
+
+                const loginBtn = document.getElementById('loginBtn');
+                const logoutBtn = document.getElementById('logoutBtn');
+                const newDiscussionBtn = document.getElementById('newDiscussionBtn');
+
+                if (loginBtn) {
+                    loginBtn.addEventListener('click', auth.login);
+                }
+
+                if (logoutBtn) {
+                    logoutBtn.addEventListener('click', auth.logout);
+                }
+
+                if (currentUser && newDiscussionBtn) {
+                    newDiscussionBtn.style.display = 'inline-flex';
+                    newDiscussionBtn.addEventListener('click', () => {
+                        window.location.href = `new-discussion.html?category=${currentCategoryId}`;
+                    });
+                }
+            } catch (error) {
+                console.error('Failed to load user:', error);
+                ui.renderUserInfo(null, document.getElementById('userInfo'));
+
+                const loginBtn = document.getElementById('loginBtn');
+                if (loginBtn) {
+                    loginBtn.addEventListener('click', auth.login);
+                }
+            }
+        }
+
+        // 載入分類討論
+        async function loadDiscussions(loadMore = false) {
+            try {
+                if (!loadMore) {
+                    ui.renderLoading(document.getElementById('discussionsList'));
+                }
+
+                const result = await client.getDiscussions(20, loadMore ? endCursor : null);
+
+                // 篩選出當前分類的討論
+                const categoryDiscussions = result.nodes.filter(d =>
+                    d.category.name === currentCategoryName
+                );
+
+                if (loadMore) {
+                    discussions = [...discussions, ...categoryDiscussions];
+                } else {
+                    discussions = categoryDiscussions;
+                }
+
+                hasNextPage = result.pageInfo.hasNextPage;
+                endCursor = result.pageInfo.endCursor;
+
+                ui.renderDiscussions(discussions, document.getElementById('discussionsList'));
+
+                // 顯示/隱藏載入更多按鈕
+                const loadMoreBtn = document.getElementById('loadMoreBtn');
+                if (hasNextPage && categoryDiscussions.length > 0) {
+                    loadMoreBtn.style.display = 'inline-flex';
+                } else {
+                    loadMoreBtn.style.display = 'none';
+                }
+            } catch (error) {
+                ui.renderError(handleError(error, 'loadDiscussions'), document.getElementById('discussionsList'));
+            }
+        }
+
+        // 載入更多按鈕事件
+        document.getElementById('loadMoreBtn').addEventListener('click', () => {
+            loadDiscussions(true);
+        });
+
+        // 初始化
+        async function init() {
+            // 從 URL 獲取分類資訊
+            currentCategoryId = getQueryParam('id');
+            currentCategoryName = decodeURIComponent(getQueryParam('name') || '');
+
+            if (!currentCategoryId || !currentCategoryName) {
+                document.getElementById('categoryTitle').textContent = '❌ 找不到分類';
+                document.getElementById('discussionsList').innerHTML = `
+          <div class="error-message">
+            <strong>錯誤</strong>
+            <p>無效的分類參數</p>
+          </div>
+        `;
+                return;
+            }
+
+            // 更新標題
+            const translatedName = translateCategoryName(currentCategoryName);
+            document.getElementById('categoryTitle').textContent = translatedName;
+
+            await loadUser();
+            await loadDiscussions();
+        }
+
+        init();
+    </script>
+</body>
+
+</html>

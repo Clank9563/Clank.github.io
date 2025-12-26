@@ -1,0 +1,24 @@
+{
+  "name": "github-discussions-forum",
+  "version": "1.0.0",
+  "description": "A forum powered by GitHub Discussions API",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "dev": "node server.js",
+    "start": "node server.js"
+  },
+  "keywords": [
+    "github",
+    "discussions",
+    "forum"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "dotenv": "^16.3.1",
+    "node-fetch": "^3.3.2",
+    "marked": "^11.1.0"
+  }
+}

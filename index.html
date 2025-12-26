@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GitHub Discussions 論壇</title>
+    <meta name="description" content="基於 GitHub Discussions 的現代化論壇系統">
+    <link rel="stylesheet" href="src/styles/main.css">
+</head>
+
+<body>
+    <!-- 導航列 -->
+    <nav class="navbar">
+        <div class="container navbar-content">
+            <a href="index.html" class="navbar-brand">
+                💬 clank的個人博客
+            </a>
+            <div class="navbar-actions">
+                <div id="userInfo"></div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 主要內容 -->
+    <main class="main-content">
+        <div class="container">
+            <!-- 頁首 -->
+            <div class="discussions-header">
+                <h1>📋 論壇分類</h1>
+                <button class="btn btn-primary" id="newDiscussionBtn" style="display: none;">
+                    ✏️ 發起討論
+                </button>
+            </div>
+
+            <!-- 搜尋框 -->
+            <div class="search-container">
+                <span class="search-icon">🔍</span>
+                <input type="text" id="searchInput" class="search-input" placeholder="搜尋討論...">
+            </div>
+
+            <!-- 分類版塊列表 -->
+            <div class="categories-grid" id="categoriesList">
+                <!-- 分類卡片將在這裡動態載入 -->
+            </div>
+        </div>
+    </main>
+
+    <!-- 配置 -->
+    <script>
+        window.GITHUB_CONFIG = {
+            owner: 'Clank9563',
+            repo: 'Clank.github.io'
+        };
+    </script>
+
+    <!-- 主應用程式 -->
+    <script type="module">
+        import GitHubClient from './src/api/github-client.js';
+        import * as auth from './src/api/auth.js';
+        import { handleError } from './src/js/utils.js';
+
+        // 分類名稱對應表（英文 -> 中文）
+        const categoryNameMap = {
+            'Announcements': '公告',
+            'General': '交流討論區',
+            'Ideas': '建議與想法',
+            'Polls': '投票',
+            'Q&A': '問答區',
+            'Show and tell': '教學與範例區'
+        };
+
+        // Emoji 代碼對應表
+        const emojiMap = {
+            ':mega:': '📢',
+            ':speech_balloon:': '💬',
+            ':bulb:': '💡',
+            ':ballot_box:': '🗳️',
+            ':question:': '❓',
+            ':raised_hands:': '📝',
+            ':pray:': '🙏'
+        };
+
+        // 翻譯分類名稱
+        function translateCategoryName(name) {
+            return categoryNameMap[name] || name;
+        }
+
+        // 轉換 emoji 代碼為實際 emoji
+        function convertEmoji(emojiCode) {
+            return emojiMap[emojiCode] || emojiCode;
+        }
+
+        // 初始化
+        const client = new GitHubClient(
+            window.GITHUB_CONFIG.owner,
+            window.GITHUB_CONFIG.repo
+        );
+
+        let currentUser = null;
+        let allDiscussions = [];
+
+        // 載入使用者資訊
+        async function loadUser() {
+            try {
+                currentUser = await client.getCurrentUser();
+                renderUserInfo(currentUser);
+
+                const loginBtn = document.getElementById('loginBtn');
+                const logoutBtn = document.getElementById('logoutBtn');
+                const newDiscussionBtn = document.getElementById('newDiscussionBtn');
+
+                if (loginBtn) {
+                    loginBtn.addEventListener('click', auth.login);
+                }
+
+                if (logoutBtn) {
+                    logoutBtn.addEventListener('click', auth.logout);
+                }
+
+                if (currentUser && newDiscussionBtn) {
+                    newDiscussionBtn.style.display = 'inline-flex';
+                    newDiscussionBtn.addEventListener('click', () => {
+                        window.location.href = 'new-discussion.html';
+                    });
+                }
+            } catch (error) {
+                console.error('Failed to load user:', error);
+                renderUserInfo(null);
+
+                const loginBtn = document.getElementById('loginBtn');
+                if (loginBtn) {
+                    loginBtn.addEventListener('click', auth.login);
+                }
+            }
+        }
+
+        // 渲染使用者資訊
+        function renderUserInfo(user) {
+            const container = document.getElementById('userInfo');
+            if (!user) {
+                container.innerHTML = `
+                    <button class="btn btn-primary" id="loginBtn">
+                        🔐 使用 GitHub 登入
+                    </button>
+                `;
+                return;
+            }
+
+            container.innerHTML = `
+                <div class="user-info">
+                    <img src="${user.avatarUrl}" alt="${user.login}" class="user-avatar">
+                    <span class="user-name">${user.login}</span>
+                    <button class="btn btn-ghost btn-sm" id="logoutBtn">登出</button>
+                </div>
+            `;
+        }
+
+        // 載入所有討論（用於統計）
+        async function loadAllDiscussions() {
+            try {
+                const result = await client.getDiscussions(100);
+                allDiscussions = result.nodes;
+            } catch (error) {
+                console.error('Failed to load discussions:', error);
+            }
+        }
+
+        // 載入並顯示分類版塊
+        async function loadCategories() {
+            const container = document.getElementById('categoriesList');
+
+            try {
+                container.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+
+                const categories = await client.getCategories();
+                await loadAllDiscussions();
+
+                // 計算每個分類的討論數量
+                const categoriesWithCounts = categories.map(cat => {
+                    const count = allDiscussions.filter(d => d.category.name === cat.name).length;
+                    const latestDiscussion = allDiscussions
+                        .filter(d => d.category.name === cat.name)
+                        .sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt))[0];
+
+                    return {
+                        ...cat,
+                        discussionCount: count,
+                        latestDiscussion
+                    };
+                });
+
+                renderCategories(categoriesWithCounts);
+            } catch (error) {
+                container.innerHTML = `
+                    <div class="error-message">
+                        <strong>❌ 錯誤</strong>
+                        <p>${handleError(error, 'loadCategories')}</p>
+                    </div>
+                `;
+            }
+        }
+
+        // 渲染分類版塊列表
+        function renderCategories(categories) {
+            const container = document.getElementById('categoriesList');
+
+            if (!categories || categories.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📁</div>
+                        <h2>目前沒有分類</h2>
+                    </div>
+                `;
+                return;
+            }
+
+            const html = categories.map(cat => {
+                const translatedName = translateCategoryName(cat.name);
+                const emoji = convertEmoji(cat.emoji);
+                return `
+                <a href="category.html?id=${encodeURIComponent(cat.id)}&name=${encodeURIComponent(cat.name)}" class="category-card">
+                    <div class="category-header">
+                        <div class="category-icon">${emoji}</div>
+                        <div class="category-info">
+                            <h2 class="category-title">${translatedName}</h2>
+                            ${cat.description ? `<p class="category-description">${cat.description}</p>` : ''}
+                        </div>
+                    </div>
+                    <div class="category-stats">
+                        <div class="stat-item">
+                            <span class="stat-number">${cat.discussionCount}</span>
+                            <span class="stat-label">篇文章</span>
+                        </div>
+                        ${cat.latestDiscussion ? `
+                            <div class="category-latest">
+                                <span class="latest-label">最新：</span>
+                                <span class="latest-title">${cat.latestDiscussion.title}</span>
+                            </div>
+                        ` : ''}
+                    </div>
+                </a>
+                `;
+            }).join('');
+
+            container.innerHTML = html;
+        }
+
+        // 搜尋功能
+        const searchInput = document.getElementById('searchInput');
+        if (searchInput) {
+            searchInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    const query = e.target.value.trim();
+                    if (query) {
+                        window.location.href = `search.html?q=${encodeURIComponent(query)}`;
+                    }
+                }
+            });
+        }
+
+        // 初始化應用
+        async function init() {
+            await loadUser();
+            await loadCategories();
+        }
+
+        init();
+    </script>
+</body>
+
+</html>

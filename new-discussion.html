@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>發起新討論 - GitHub Discussions 論壇</title>
+    <link rel="stylesheet" href="src/styles/main.css">
+    <style>
+        /* 新討論頁面專用樣式 */
+        .new-discussion-container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .form-group {
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .form-label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: var(--spacing-sm);
+            color: var(--text-primary);
+        }
+
+        .form-input,
+        .form-select,
+        .form-textarea {
+            width: 100%;
+            padding: var(--spacing-md);
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            color: var(--text-primary);
+            font-size: 1rem;
+            font-family: inherit;
+            transition: all var(--transition-fast);
+        }
+
+        .form-input:focus,
+        .form-select:focus,
+        .form-textarea:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .form-textarea {
+            min-height: 300px;
+            resize: vertical;
+            font-family: 'Consolas', 'Monaco', monospace;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: var(--spacing-md);
+            justify-content: flex-end;
+        }
+
+        .preview-container {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: var(--spacing-lg);
+            min-height: 200px;
+        }
+
+        .tabs {
+            display: flex;
+            gap: var(--spacing-sm);
+            margin-bottom: var(--spacing-md);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .tab {
+            padding: var(--spacing-sm) var(--spacing-lg);
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all var(--transition-fast);
+        }
+
+        .tab.active {
+            color: var(--accent-primary);
+            border-bottom-color: var(--accent-primary);
+        }
+
+        .tab:hover {
+            color: var(--text-primary);
+        }
+
+        .help-text {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            margin-top: var(--spacing-xs);
+        }
+
+        .required {
+            color: hsl(0, 70%, 60%);
+        }
+    </style>
+</head>
+
+<body>
+    <!-- 導航列 -->
+    <nav class="navbar">
+        <div class="container navbar-content">
+            <a href="index.html" class="navbar-brand">
+                💬 clank的個人博客
+            </a>
+            <div class="navbar-actions">
+                <div id="userInfo"></div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 主要內容 -->
+    <main class="main-content">
+        <div class="container new-discussion-container">
+            <a href="index.html" class="back-link"
+                style="display: inline-flex; align-items: center; gap: 0.5rem; color: var(--text-secondary); text-decoration: none; margin-bottom: 1.5rem;">
+                ← 返回討論列表
+            </a>
+
+            <h1 style="margin-bottom: 2rem;">✏️ 發起新討論</h1>
+
+            <form id="newDiscussionForm">
+                <!-- 分類選擇 -->
+                <div class="form-group">
+                    <label class="form-label" for="category">
+                        討論分類 <span class="required">*</span>
+                    </label>
+                    <select id="category" class="form-select" required>
+                        <option value="">請選擇分類...</option>
+                    </select>
+                    <div class="help-text">選擇最適合您討論主題的分類</div>
+                </div>
+
+                <!-- 標籤選擇 -->
+                <div class="form-group">
+                    <label class="form-label">標籤</label>
+                    <div id="labelsContainer" class="labels-container">
+                        <div class="loading-small">載入標籤中...</div>
+                    </div>
+                    <div class="help-text">選擇適合的標籤（可多選）</div>
+                    <style>
+                        .labels-container {
+                            display: flex;
+                            flex-wrap: wrap;
+                            gap: 0.5rem;
+                            padding: 0.5rem;
+                            border: 1px solid var(--border-color);
+                            border-radius: var(--radius-md);
+                            background: var(--bg-tertiary);
+                            min-height: 42px;
+                        }
+
+                        .label-checkbox {
+                            display: none;
+                        }
+
+                        .label-option {
+                            display: inline-flex;
+                            align-items: center;
+                            padding: 4px 12px;
+                            border-radius: 2em;
+                            font-size: 0.875rem;
+                            cursor: pointer;
+                            border: 1px solid transparent;
+                            transition: all 0.2s;
+                            user-select: none;
+                            background: var(--bg-secondary);
+                            color: var(--text-secondary);
+                            border-color: var(--border-color);
+                        }
+
+                        .label-checkbox:checked+.label-option {
+                            color: #fff;
+                            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+                            border-color: transparent;
+                        }
+
+                        .loading-small {
+                            font-size: 0.875rem;
+                            color: var(--text-secondary);
+                            padding: 0.25rem;
+                        }
+                    </style>
+                </div>
+
+                <!-- 標題 -->
+                <div class="form-group">
+                    <label class="form-label" for="title">
+                        討論標題 <span class="required">*</span>
+                    </label>
+                    <input type="text" id="title" class="form-input" placeholder="輸入一個清晰、描述性的標題..." required
+                        maxlength="200">
+                    <div class="help-text">標題應該簡潔明瞭，讓其他人一眼就能了解討論主題</div>
+                </div>
+
+                <!-- 內容編輯器 -->
+                <div class="form-group">
+                    <label class="form-label">
+                        討論內容 <span class="required">*</span>
+                    </label>
+
+                    <!-- 標籤切換 -->
+                    <div class="tabs">
+                        <button type="button" class="tab active" data-tab="write">
+                            ✍️ 編輯
+                        </button>
+                        <button type="button" class="tab" data-tab="preview">
+                            👁️ 預覽
+                        </button>
+                    </div>
+
+                    <!-- 編輯區 -->
+                    <div id="writeTab">
+                        <textarea id="body" class="form-textarea"
+                            placeholder="使用 Markdown 格式撰寫您的討論內容...&#10;&#10;支援：&#10;- **粗體** 和 *斜體*&#10;- [連結](url)&#10;- `程式碼`&#10;- 清單、引用等"
+                            required></textarea>
+                    </div>
+
+                    <!-- 預覽區 -->
+                    <div id="previewTab" style="display: none;">
+                        <div class="preview-container markdown-body" id="preview">
+                            <p style="color: var(--text-secondary);">預覽將顯示在這裡...</p>
+                        </div>
+                    </div>
+
+                    <div class="help-text">支援 Markdown 格式，可使用預覽功能查看最終效果</div>
+                </div>
+
+                <!-- 提交按鈕 -->
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="window.location.href='index.html'">
+                        取消
+                    </button>
+                    <button type="submit" class="btn btn-primary" id="submitBtn">
+                        🚀 發表討論
+                    </button>
+                </div>
+            </form>
+        </div>
+    </main>
+
+    <!-- 配置 -->
+    <script>
+        window.GITHUB_CONFIG = {
+            owner: 'Clank9563',
+            repo: 'Clank.github.io'
+        };
+    </script>
+
+    <!-- 主應用程式 -->
+    <script type="module">
+        import GitHubClient from './src/api/github-client.js';
+        import * as auth from './src/api/auth.js';
+        import * as ui from './src/js/ui.js';
+        import { handleError, translateLabel } from './src/js/utils.js';
+        import { marked } from 'https://cdn.jsdelivr.net/npm/marked@11.1.0/+esm';
+
+        // 分類名稱對應表（英文 -> 中文）
+        const categoryNameMap = {
+            'Announcements': '公告',
+            'General': '交流討論區',
+            'Ideas': '建議與想法',
+            'Polls': '投票',
+            'Q&A': '問答區',
+            'Show and tell': '教學與範例區'
+        };
+
+        // Emoji 代碼對應表
+        const emojiMap = {
+            ':mega:': '📢',
+            ':speech_balloon:': '💬',
+            ':bulb:': '💡',
+            ':ballot_box:': '🗳️',
+            ':question:': '❓',
+            ':raised_hands:': '📝',
+            ':pray:': '🙏'
+        };
+
+        // 翻譯分類名稱
+        function translateCategoryName(name) {
+            return categoryNameMap[name] || name;
+        }
+
+        // 轉換 emoji 代碼為實際 emoji
+        function convertEmoji(emojiCode) {
+            return emojiMap[emojiCode] || emojiCode;
+        }
+
+        const client = new GitHubClient(
+            window.GITHUB_CONFIG.owner,
+            window.GITHUB_CONFIG.repo
+        );
+
+        let currentUser = null;
+
+        // 檢查登入狀態
+        async function checkAuth() {
+            currentUser = await client.getCurrentUser();
+
+            if (!currentUser) {
+                alert('您需要先登入才能發起討論');
+                window.location.href = 'index.html';
+                return false;
+            }
+
+            ui.renderUserInfo(currentUser, document.getElementById('userInfo'));
+
+            const logoutBtn = document.getElementById('logoutBtn');
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', auth.logout);
+            }
+
+            return true;
+        }
+
+        // 載入分類
+        async function loadCategories() {
+            try {
+                const categories = await client.getCategories();
+                const select = document.getElementById('category');
+
+                categories.forEach(cat => {
+                    const option = document.createElement('option');
+                    option.value = cat.id;
+                    const emoji = convertEmoji(cat.emoji);
+                    const translatedName = translateCategoryName(cat.name);
+                    option.textContent = `${emoji} ${translatedName}`;
+                    if (cat.description) {
+                        option.title = cat.description;
+                    }
+                    select.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Failed to load categories:', error);
+                alert('載入分類失敗：' + handleError(error));
+            }
+        }
+
+        // 標籤切換
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                const tabName = tab.dataset.tab;
+
+                // 更新標籤狀態
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+
+                // 切換內容
+                if (tabName === 'write') {
+                    document.getElementById('writeTab').style.display = 'block';
+                    document.getElementById('previewTab').style.display = 'none';
+                } else {
+                    document.getElementById('writeTab').style.display = 'none';
+                    document.getElementById('previewTab').style.display = 'block';
+
+                    // 更新預覽
+                    const body = document.getElementById('body').value;
+                    const preview = document.getElementById('preview');
+                    if (body.trim()) {
+                        preview.innerHTML = marked.parse(body);
+                    } else {
+                        preview.innerHTML = '<p style="color: var(--text-secondary);">預覽將顯示在這裡...</p>';
+                    }
+                }
+            });
+        });
+
+        // Helper function to escape HTML for safe rendering
+        function escapeHtml(unsafe) {
+            return unsafe
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        // 載入標籤
+        async function loadLabels() {
+            const container = document.getElementById('labelsContainer');
+            try {
+                const labels = await client.getLabels();
+
+                if (labels.length === 0) {
+                    container.innerHTML = '<div class="loading-small">沒有可用標籤</div>';
+                    return;
+                }
+
+                container.innerHTML = labels.map(label => `
+                    <label>
+                        <input type="checkbox" name="labels" value="${label.id}" class="label-checkbox">
+                        <span class="label-option" style="--active-color: #${label.color}">
+                            ${escapeHtml(translateLabel(label.name))}
+                        </span>
+                    </label>
+                `).join('');
+
+                // 添加點擊事件處理顏色
+                container.querySelectorAll('.label-checkbox').forEach(checkbox => {
+                    const span = checkbox.nextElementSibling;
+                    const color = span.style.getPropertyValue('--active-color');
+
+                    checkbox.addEventListener('change', () => {
+                        if (checkbox.checked) {
+                            span.style.backgroundColor = color;
+                            // 判斷亮度決定文字顏色
+                            span.style.color = '#fff';
+                        } else {
+                            span.style.backgroundColor = '';
+                            span.style.color = '';
+                        }
+                    });
+                });
+
+            } catch (error) {
+                console.error('Failed to load labels:', error);
+                container.innerHTML = '<div class="loading-small">載入標籤失敗</div>';
+            }
+        }
+
+        // 提交表單
+        async function handleSubmit(e) {
+            e.preventDefault();
+
+            const categoryId = document.getElementById('category').value;
+            const title = document.getElementById('title').value.trim();
+            const body = document.getElementById('body').value.trim();
+
+            // 獲取選中的標籤
+            const selectedLabels = Array.from(document.querySelectorAll('input[name="labels"]:checked'))
+                .map(input => input.value);
+
+            if (!categoryId || !title || !body) {
+                alert('請填寫所有必填欄位');
+                return;
+            }
+
+            const submitBtn = document.getElementById('submitBtn');
+            const originalText = submitBtn.textContent;
+            submitBtn.disabled = true;
+            submitBtn.textContent = '發布中...';
+
+            try {
+                // 1. 建立討論
+                const discussion = await client.createDiscussion(categoryId, title, body);
+
+                // 2. 如果有選標籤，添加標籤
+                if (selectedLabels.length > 0) {
+                    submitBtn.textContent = '添加標籤中...';
+                    try {
+                        await client.addLabels(discussion.id, selectedLabels);
+                    } catch (labelError) {
+                        console.error('Failed to add labels:', labelError);
+                        alert('討論已建立，但標籤添加失敗：' + handleError(labelError));
+                    }
+                }
+
+                // 3. 成功跳轉
+                alert('討論發布成功！');
+                window.location.href = `discussion.html?number=${discussion.number}`;
+            } catch (error) {
+                console.error('Failed to create discussion:', error);
+                alert('發布失敗：' + handleError(error, 'createDiscussion'));
+                submitBtn.disabled = false;
+                submitBtn.textContent = originalText;
+            }
+        }
+
+        document.getElementById('newDiscussionForm').addEventListener('submit', handleSubmit);
+
+        // 初始化
+        async function init() {
+            try {
+                console.log('Starting initialization...');
+                const hasAuth = await checkAuth();
+                console.log('Auth check result:', hasAuth);
+
+                if (hasAuth) {
+                    console.log('Loading categories...');
+                    await loadCategories();
+                    console.log('Categories loaded.');
+
+                    console.log('Loading labels...');
+                    await loadLabels();
+                    console.log('Labels loaded.');
+                }
+            } catch (error) {
+                console.error('Initialization failed:', error);
+                alert('初始化失敗，請查看控制台日誌。');
+            }
+        }
+
+        // 確保 DOM 載入後執行
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', init);
+        } else {
+            init();
+        }
+    </script>
+</body>
+
+</html>
