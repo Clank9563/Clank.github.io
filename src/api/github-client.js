@@ -601,10 +601,359 @@ class GitHubClient {
       const data = await this.graphqlRequest(query);
       return data.viewer;
     } catch (error) {
-      console.error('Failed to get user info:', error);
+      console.error('Failed to get current user:', error);
+      // 如果 token 無效，清除它
+      this.setToken(null);
       return null;
     }
   }
+
+  // ==========================================
+  // 訪客模式 (靜態數據) 支援
+  // ==========================================
+
+  /**
+   * 獲取靜態數據 (data.json)
+   */
+  async fetchStaticData() {
+    if (this._staticData) {
+      return this._staticData;
+    }
+
+    try {
+      // 加上 timestamp 避免快取
+      const response = await fetch(`data.json?t=${new Date().getTime()}`);
+      if (!response.ok) {
+        throw new Error('無法載入靜態數據');
+      }
+      this._staticData = await response.json();
+      return this._staticData;
+    } catch (error) {
+      console.error('Fetch static data failed:', error);
+      // 如果 data.json 不存在（例如剛部署還沒產生），回傳空結構以免報錯
+      return { discussions: [], categories: [], labels: [] };
+    }
+  }
+
+  /**
+   * 覆寫: 獲取討論列表 (支援訪客)
+   */
+  async getDiscussions(first = 20, after = null) {
+    // 1. 如果有 Token，走原流程 (API)
+    if (this.token) {
+      return this._getDiscussionsFromApi(first, after);
+    }
+
+    // 2. 否則走訪客流程 (靜態與本地過濾)
+    const data = await this.fetchStaticData();
+    return data.discussions || [];
+  }
+
+  // 原 API 邏輯改名為內部方法
+  async _getDiscussionsFromApi(first, after) {
+    const query = `
+      query($owner: String!, $repo: String!, $first: Int!, $after: String) {
+        repository(owner: $owner, name: $repo) {
+          discussions(first: $first, after: $after, orderBy: {field: UPDATED_AT, direction: DESC}) {
+            pageInfo {
+              hasNextPage
+              endCursor
+            }
+            nodes {
+              id
+              number
+              title
+              body
+              createdAt
+              updatedAt
+              author {
+                login
+                avatarUrl
+              }
+              category {
+                id
+                name
+                emoji
+              }
+              labels(first: 5) {
+                nodes {
+                  id
+                  name
+                  color
+                }
+              }
+              comments {
+                totalCount
+              }
+              reactions {
+                totalCount
+              }
+            }
+          }
+        }
+      }
+    `;
+
+    const data = await this.graphqlRequest(query, {
+      owner: this.owner,
+      repo: this.repo,
+      first,
+      after,
+    });
+
+    return data.repository.discussions;
+  }
+
+  /**
+   * 覆寫: 獲取單個討論詳情 (支援訪客)
+   */
+  async getDiscussion(number) {
+    if (this.token) {
+      return this._getDiscussionFromApi(number);
+    }
+
+    const data = await this.fetchStaticData();
+    const discussion = data.discussions.find(d => d.number === parseInt(number));
+
+    if (!discussion) {
+      throw new Error('找不到該討論 (可能未同步或不存在)');
+    }
+
+    // 靜態數據的結構可能稍微不同，確保相容性
+    // 為了讓詳情頁渲染正常，我們可能需要補一些預設值 (如 comments nodes)
+    // sync.js 抓下來的 comments 只有 totalCount，沒有詳細列表
+    // *注意*: 為了保持靜態檔小，我們通常不抓所有留言。
+    // 所以訪客模式下，可能只能看到 "有 X 則留言"，但看不到留言內容。
+    // 如果要看留言，我們必須修改 sync.js 抓取留言內容。
+    // 目前先讓它顯示文章本體。
+    if (!discussion.comments.nodes) {
+      discussion.comments.nodes = []; // 訪客暫時看不到留言列表
+    }
+
+    return discussion;
+  }
+
+  async _getDiscussionFromApi(number) {
+    const query = `
+      query($owner: String!, $repo: String!, $number: Int!) {
+        repository(owner: $owner, name: $repo) {
+          discussion(number: $number) {
+            id
+            number
+            title
+            body
+            bodyHTML
+            createdAt
+            updatedAt
+            author {
+              login
+              avatarUrl
+            }
+            category {
+              name
+              emoji
+            }
+            labels(first: 10) {
+              nodes {
+                id
+                name
+                color
+              }
+            }
+            comments(first: 100) {
+              nodes {
+                id
+                body
+                bodyHTML
+                createdAt
+                author {
+                  login
+                  avatarUrl
+                }
+                replies(first: 50) {
+                  nodes {
+                    id
+                    body
+                    bodyHTML
+                    createdAt
+                    author {
+                      login
+                      avatarUrl
+                    }
+                  }
+                }
+                reactions {
+                  totalCount
+                }
+              }
+            }
+            reactions {
+              totalCount
+            }
+          }
+        }
+      }
+    `;
+
+    const data = await this.graphqlRequest(query, {
+      owner: this.owner,
+      repo: this.repo,
+      number: parseInt(number),
+    });
+
+    return data.repository.discussion;
+  }
+
+
+  /**
+   * 覆寫: 獲取分類 (支援訪客)
+   */
+  async getCategories() {
+    if (this.token) {
+      return this._getCategoriesFromApi();
+    }
+    const data = await this.fetchStaticData();
+    return data.categories || [];
+  }
+
+  async _getCategoriesFromApi() {
+    const query = `
+      query($owner: String!, $repo: String!) {
+        repository(owner: $owner, name: $repo) {
+          discussionCategories(first: 20) {
+            nodes {
+              id
+              name
+              emoji
+              description
+            }
+          }
+        }
+      }
+    `;
+
+    const data = await this.graphqlRequest(query, {
+      owner: this.owner,
+      repo: this.repo,
+    });
+
+    return data.repository.discussionCategories.nodes;
+  }
+
+  /**
+   * 覆寫: 獲取標籤 (支援訪客)
+   */
+  async getLabels() {
+    if (this.token) {
+      return this._getLabelsFromApi();
+    }
+    const data = await this.fetchStaticData();
+    return data.labels || [];
+  }
+
+  async _getLabelsFromApi() {
+    const query = `
+      query($owner: String!, $repo: String!) {
+        repository(owner: $owner, name: $repo) {
+          labels(first: 20) {
+            nodes {
+              id
+              name
+              color
+              description
+            }
+          }
+        }
+      }
+    `;
+
+    const data = await this.graphqlRequest(query, {
+      owner: this.owner,
+      repo: this.repo,
+    });
+
+    return data.repository.labels.nodes;
+  }
+
+  /**
+   * 覆寫: 搜尋 (支援訪客)
+   */
+  async searchDiscussions(query, first = 20) {
+    if (!query || query.trim() === '') {
+      // Throw error only if query is empty and we are in API mode
+      // For static mode, an empty query might just return all discussions
+      if (this.token) {
+        throw new Error('搜尋關鍵字不能為空');
+      }
+    }
+
+    if (this.token) {
+      return this._searchDiscussionsFromApi(query, first);
+    }
+
+    // 前端靜態搜尋
+    const data = await this.fetchStaticData();
+    const discs = data.discussions || [];
+    const lowerQ = query.toLowerCase();
+
+    const filtered = discs.filter(d =>
+      (d.title && d.title.toLowerCase().includes(lowerQ)) ||
+      (d.body && d.body.toLowerCase().includes(lowerQ))
+    );
+
+    return {
+      totalCount: filtered.length,
+      nodes: filtered
+    };
+  }
+
+  async _searchDiscussionsFromApi(query, first) {
+    const searchQuery = `repo:${this.owner}/${this.repo} ${query} in:title,body`;
+    const graphqlQuery = `
+      query($query: String!, $first: Int!) {
+        search(query: $query, type: DISCUSSION, first: $first) {
+          discussionCount
+          nodes {
+            ... on Discussion {
+              id
+              number
+              title
+              body
+              createdAt
+              updatedAt
+              author {
+                login
+                avatarUrl
+              }
+              category {
+                id
+                name
+                emoji
+              }
+              comments {
+                totalCount
+              }
+              reactions {
+                totalCount
+              }
+            }
+          }
+        }
+      }
+    `;
+
+    const data = await this.graphqlRequest(graphqlQuery, {
+      query: searchQuery,
+      first,
+    });
+
+    return {
+      totalCount: data.search.discussionCount,
+      nodes: data.search.nodes,
+    };
+  }
+
 }
 
 export default GitHubClient;
+```
