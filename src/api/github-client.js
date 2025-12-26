@@ -653,7 +653,14 @@ class GitHubClient {
 
     // 2. 否則走訪客流程 (靜態與本地過濾)
     const data = await this.fetchStaticData();
-    return data.discussions || [];
+    // 模擬 API 回傳結構
+    return {
+      nodes: data.discussions || [],
+      pageInfo: {
+        hasNextPage: false,
+        endCursor: null
+      }
+    };
   }
 
   // 原 API 邏輯改名為內部方法
