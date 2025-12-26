@@ -1,0 +1,311 @@
+{
+  "metadata": {
+    "lastUpdated": "2025-12-26T06:46:53.932Z",
+    "totalDiscussions": 6
+  },
+  "categories": [
+    {
+      "id": "DIC_kwDOP6FFPs4C0PqF",
+      "name": "Announcements",
+      "emoji": ":mega:",
+      "description": "Updates from maintainers"
+    },
+    {
+      "id": "DIC_kwDOP6FFPs4C0PqG",
+      "name": "General",
+      "emoji": ":speech_balloon:",
+      "description": "Chat about anything and everything here"
+    },
+    {
+      "id": "DIC_kwDOP6FFPs4C0PqI",
+      "name": "Ideas",
+      "emoji": ":bulb:",
+      "description": "Share ideas for new features"
+    },
+    {
+      "id": "DIC_kwDOP6FFPs4C0PqK",
+      "name": "Polls",
+      "emoji": ":ballot_box:",
+      "description": "Take a vote from the community"
+    },
+    {
+      "id": "DIC_kwDOP6FFPs4C0PqH",
+      "name": "Q&A",
+      "emoji": ":pray:",
+      "description": "Ask the community for help"
+    },
+    {
+      "id": "DIC_kwDOP6FFPs4C0PqJ",
+      "name": "Show and tell",
+      "emoji": ":raised_hands:",
+      "description": "Show off something you've made"
+    }
+  ],
+  "labels": [
+    {
+      "id": "LA_kwDOP6FFPs8AAAACLyzBPg",
+      "name": "bug",
+      "color": "d73a4a",
+      "description": "Something isn't working"
+    },
+    {
+      "id": "LA_kwDOP6FFPs8AAAACLyzBRA",
+      "name": "documentation",
+      "color": "0075ca",
+      "description": "Improvements or additions to documentation"
+    },
+    {
+      "id": "LA_kwDOP6FFPs8AAAACLyzBSw",
+      "name": "enhancement",
+      "color": "a2eeef",
+      "description": "New feature or request"
+    },
+    {
+      "id": "LA_kwDOP6FFPs8AAAACLyzBTw",
+      "name": "help wanted",
+      "color": "008672",
+      "description": "Extra attention is needed"
+    },
+    {
+      "id": "LA_kwDOP6FFPs8AAAACLyzBVw",
+      "name": "invalid",
+      "color": "e4e669",
+      "description": "This doesn't seem right"
+    },
+    {
+      "id": "LA_kwDOP6FFPs8AAAACLyzBWw",
+      "name": "question",
+      "color": "d876e3",
+      "description": "Further information is requested"
+    },
+    {
+      "id": "LA_kwDOP6FFPs8AAAACTXu0-Q",
+      "name": "frontend",
+      "color": "2ED573",
+      "description": ""
+    },
+    {
+      "id": "LA_kwDOP6FFPs8AAAACTXu49g",
+      "name": "backend",
+      "color": "3742FA",
+      "description": ""
+    },
+    {
+      "id": "LA_kwDOP6FFPs8AAAACTXu7eA",
+      "name": "design",
+      "color": "FF6B81",
+      "description": ""
+    },
+    {
+      "id": "LA_kwDOP6FFPs8AAAACTXu9sg",
+      "name": "security",
+      "color": "FF4757",
+      "description": ""
+    },
+    {
+      "id": "LA_kwDOP6FFPs8AAAACTXu_xw",
+      "name": "performance",
+      "color": "1DD1A1",
+      "description": ""
+    },
+    {
+      "id": "LA_kwDOP6FFPs8AAAACTXvD1w",
+      "name": "ui/ux",
+      "color": "FFD93D",
+      "description": ""
+    },
+    {
+      "id": "LA_kwDOP6FFPs8AAAACTXvJvw",
+      "name": "CI/CD",
+      "color": "6C5DD3",
+      "description": ""
+    },
+    {
+      "id": "LA_kwDOP6FFPs8AAAACTXvlSA",
+      "name": "fix",
+      "color": "f39c12",
+      "description": ""
+    },
+    {
+      "id": "LA_kwDOP6FFPs8AAAACTXwNuw",
+      "name": "database",
+      "color": "9b59b6",
+      "description": ""
+    }
+  ],
+  "discussions": [
+    {
+      "id": "D_kwDOP6FFPs4AjaYy",
+      "number": 11,
+      "title": "docker bridge差別",
+      "body": "# docker bridge差別\n\n擁有者: clank\n\n**docker run -p 80:80**\n\n- **功能: 該命令將主機的 80 埠映射到容器的 80 埠。**\n- **訪問: 通過主機的 IP 位址或 localhost，你可以訪問容器內運行在 80 埠的應用程式。這種方式適合需要讓外部訪問容器服務的場景，比如 Web 伺服器。**\n- **網路模式: 預設情況下，這種埠映射是在 Docker 的 bridge 網路上進行的。Docker 會自動將流量轉發到相應的容器。**\n\n**Bridge 網路**\n\n- **功能**: bridge 網路是 Docker 的預設網路模式，允許容器之間在同一網路內進行通信。每個容器在該網路上都有自己的虛擬 IP 位址。\n- **訪問**: 在 bridge 網路中，容器可以通過 IP 位址或容器名稱相互訪問，但外部網路（主機之外的網路）不能直接訪問這些容器，除非你設置了外部訪問（如 -p 選項）。\n- **隔離**: 使用 bridge 網路時，容器之間是隔離的，只有在同一網路內的容器可以直接通信。\n\n**關鍵區別**\n\n- **埠映射(port) vs. 網路通信**:\n    - p 用於將主機的埠**(port)**映射到容器的埠，從而使外部能夠訪問容器中的服務。\n    - bridge 網路主要用於容器之間的內部通信。\n- **訪問範圍**:\n    - 使用 -p 80:80 後，任何人可以通過主機的 IP 位址訪問容器的服務。\n    - 在 bridge 網路中，只有同一網路內的容器可以相互通信。",
+      "url": "https://github.com/Clank9563/Clank.github.io/discussions/11",
+      "createdAt": "2025-12-26T05:46:27Z",
+      "updatedAt": "2025-12-26T05:46:27Z",
+      "author": {
+        "login": "Clank9563",
+        "avatarUrl": "https://avatars.githubusercontent.com/u/67671298?u=b0c8d36573e43692739fbe9502ba5e7ae319f49a&v=4",
+        "url": "https://github.com/Clank9563"
+      },
+      "category": {
+        "id": "DIC_kwDOP6FFPs4C0PqJ",
+        "name": "Show and tell",
+        "emoji": ":raised_hands:"
+      },
+      "labels": {
+        "nodes": [
+          {
+            "name": "backend",
+            "color": "3742FA"
+          }
+        ]
+      },
+      "comments": {
+        "totalCount": 0
+      },
+      "reactions": {
+        "totalCount": 0
+      }
+    },
+    {
+      "id": "D_kwDOP6FFPs4AjaRx",
+      "number": 9,
+      "title": "📝教學與範例區（Tutorials / Documentation）",
+      "body": "### Discussed in [你的討論串連結]\r\n\r\n<div type='discussions-op-text'>\r\n\r\n<sup>Originally posted by **Clank9563** 2025-12-26</sup>\r\n\r\n## 📝 教學與範例區 - 標題示例\r\n\r\n### 📌 發佈者\r\n- 使用者 GitHub 名稱 / 姓名（可選）\r\n- 教學或範例背景（可選）\r\n\r\n### 📝 教學內容\r\n請撰寫詳細教學或範例內容，例如：\r\n- 功能操作步驟\r\n- 範例程式碼或設定\r\n- 實作流程說明\r\n- 注意事項或常見問題\r\n\r\n### 🗨️ 討論與回饋\r\n- 社群成員可留言討論、補充或提出建議  \r\n- 可以分享改進方法或優化經驗\r\n\r\n### 🔗 相關連結（可選）\r\n- 官方文件或專案說明  \r\n- 相關教學文章或討論串  \r\n- 範例程式碼或 GitHub Repository  \r\n\r\n### ⚠️ 備註\r\n- 教學內容應清楚、易懂，方便其他使用者參考  \r\n- 可搭配圖片、程式碼區塊或影片示範  \r\n- 鼓勵提供實作經驗與技巧，增強學習效果\r\n\r\n</div>\r\n",
+      "url": "https://github.com/Clank9563/Clank.github.io/discussions/9",
+      "createdAt": "2025-12-26T02:12:22Z",
+      "updatedAt": "2025-12-26T02:14:01Z",
+      "author": {
+        "login": "Clank9563",
+        "avatarUrl": "https://avatars.githubusercontent.com/u/67671298?u=b0c8d36573e43692739fbe9502ba5e7ae319f49a&v=4",
+        "url": "https://github.com/Clank9563"
+      },
+      "category": {
+        "id": "DIC_kwDOP6FFPs4C0PqJ",
+        "name": "Show and tell",
+        "emoji": ":raised_hands:"
+      },
+      "labels": {
+        "nodes": []
+      },
+      "comments": {
+        "totalCount": 0
+      },
+      "reactions": {
+        "totalCount": 0
+      }
+    },
+    {
+      "id": "D_kwDOP6FFPs4AjaRn",
+      "number": 8,
+      "title": "💡建議與意見區（Ideas）",
+      "body": "### Discussed in [你的討論串連結]\r\n\r\n<div type='discussions-op-text'>\r\n\r\n<sup>Originally posted by **Clank9563** 2025-12-26</sup>\r\n\r\n## 💡 建議與意見區 - 標題示例\r\n\r\n### 📌 發起者\r\n- 使用者 GitHub 名稱 / 姓名（可選）\r\n- 專案或功能背景（可選）\r\n\r\n### 📝 建議內容\r\n請詳細描述你的建議或改進意見，例如：\r\n- 希望新增的功能或模組\r\n- 現有功能的優化建議\r\n- 對使用體驗或介面的改善想法\r\n\r\n### 🗨️ 討論與回饋\r\n- 社群成員可留言討論、提出改進方案或建議  \r\n- 鼓勵正向、建設性的回饋  \r\n\r\n### 🔗 相關連結（可選）\r\n- 專案文件或現有功能說明  \r\n- 相關討論串 / 問答區問題  \r\n- 範例程式碼或 GitHub Repository  \r\n\r\n### ⚠️ 備註\r\n- 尊重他人建議，避免攻擊或負面評論  \r\n- 如果建議已實現，可更新狀態或留言通知  \r\n- 鼓勵提出具體、可操作的建議，方便專案改進\r\n\r\n</div>\r\n",
+      "url": "https://github.com/Clank9563/Clank.github.io/discussions/8",
+      "createdAt": "2025-12-26T02:09:23Z",
+      "updatedAt": "2025-12-26T02:14:15Z",
+      "author": {
+        "login": "Clank9563",
+        "avatarUrl": "https://avatars.githubusercontent.com/u/67671298?u=b0c8d36573e43692739fbe9502ba5e7ae319f49a&v=4",
+        "url": "https://github.com/Clank9563"
+      },
+      "category": {
+        "id": "DIC_kwDOP6FFPs4C0PqI",
+        "name": "Ideas",
+        "emoji": ":bulb:"
+      },
+      "labels": {
+        "nodes": []
+      },
+      "comments": {
+        "totalCount": 0
+      },
+      "reactions": {
+        "totalCount": 0
+      }
+    },
+    {
+      "id": "D_kwDOP6FFPs4AjaRj",
+      "number": 7,
+      "title": "💬交流討論區（General）",
+      "body": "### Discussed in [你的討論串連結]\r\n\r\n<div type='discussions-op-text'>\r\n\r\n<sup>Originally posted by **Clank9563** 2025-12-26</sup>\r\n\r\n## 💬 交流討論區 - 標題示例\r\n\r\n### 📌 發起者\r\n- 使用者 GitHub 名稱 / 姓名（可選）\r\n- 分享主題或專案背景（可選）\r\n\r\n### 📝 分享內容\r\n請描述你想分享的內容，例如：\r\n- 技術經驗、實作技巧\r\n- 專案心得、學習筆記\r\n- 技術問題討論或觀點交流\r\n\r\n### 🗨️ 討論與回饋\r\n- 社群成員可以留言討論、提供建議或分享經驗  \r\n- 鼓勵正向、互相尊重的討論氛圍\r\n\r\n### 🔗 相關連結（可選）\r\n- 參考文件或官方文件  \r\n- 相關討論串  \r\n- 範例程式碼或 GitHub Repository\r\n\r\n### ⚠️ 備註\r\n- 尊重他人意見，保持友善交流  \r\n- 如果討論有結論，可留言總結  \r\n- 避免與問答區重複提問\r\n\r\n</div>\r\n",
+      "url": "https://github.com/Clank9563/Clank.github.io/discussions/7",
+      "createdAt": "2025-12-26T02:08:13Z",
+      "updatedAt": "2025-12-26T03:02:51Z",
+      "author": {
+        "login": "Clank9563",
+        "avatarUrl": "https://avatars.githubusercontent.com/u/67671298?u=b0c8d36573e43692739fbe9502ba5e7ae319f49a&v=4",
+        "url": "https://github.com/Clank9563"
+      },
+      "category": {
+        "id": "DIC_kwDOP6FFPs4C0PqG",
+        "name": "General",
+        "emoji": ":speech_balloon:"
+      },
+      "labels": {
+        "nodes": []
+      },
+      "comments": {
+        "totalCount": 1
+      },
+      "reactions": {
+        "totalCount": 1
+      }
+    },
+    {
+      "id": "D_kwDOP6FFPs4AjaRd",
+      "number": 6,
+      "title": "❓問答區（Q&A）",
+      "body": "### Discussed in [你的討論串連結]\r\n\r\n<div type='discussions-op-text'>\r\n\r\n<sup>Originally posted by **Clank9563** 2025-12-26</sup>\r\n\r\n## ❓ 問答區 - 標題示例\r\n\r\n### 📌 提問者\r\n- 使用者 GitHub 名稱 / 姓名（可選）\r\n- 角色或專案背景（可選）\r\n\r\n### 📝 問題描述\r\n請詳細描述你遇到的問題或疑問，例如：\r\n- 操作流程中遇到的錯誤\r\n- 程式碼範例或錯誤訊息\r\n- 功能使用上的疑惑\r\n\r\n### 💡 嘗試過的方法（可選）\r\n請列出你已經嘗試的解決方法，讓回答者更快定位問題。\r\n\r\n### 🗨️ 回答與討論\r\n- 其他社群成員可在此留言回答或提供建議  \r\n- 可以標記回答是否解決問題（GitHub Discussions 提供「標記答案」功能）\r\n\r\n### 🔗 相關連結（可選）\r\n- 專案文件 / Wiki  \r\n- 相關討論串 / 先前問題  \r\n- 範例程式碼或 GitHub Repository\r\n\r\n### ⚠️ 備註\r\n- 請禮貌回覆，尊重社群規範  \r\n- 如果問題已解決，請標記最佳答案  \r\n- 避免重複提問，先搜尋問答區歷史討論\r\n\r\n</div>\r\n",
+      "url": "https://github.com/Clank9563/Clank.github.io/discussions/6",
+      "createdAt": "2025-12-26T02:06:58Z",
+      "updatedAt": "2025-12-26T02:36:17Z",
+      "author": {
+        "login": "Clank9563",
+        "avatarUrl": "https://avatars.githubusercontent.com/u/67671298?u=b0c8d36573e43692739fbe9502ba5e7ae319f49a&v=4",
+        "url": "https://github.com/Clank9563"
+      },
+      "category": {
+        "id": "DIC_kwDOP6FFPs4C0PqH",
+        "name": "Q&A",
+        "emoji": ":pray:"
+      },
+      "labels": {
+        "nodes": []
+      },
+      "comments": {
+        "totalCount": 0
+      },
+      "reactions": {
+        "totalCount": 0
+      }
+    },
+    {
+      "id": "D_kwDOP6FFPs4AjaRa",
+      "number": 5,
+      "title": "📢 公告",
+      "body": "### Discussed in [你的討論串連結]\r\n\r\n<div type='discussions-op-text'>\r\n\r\n<sup>Originally posted by **Clank9563** 2025-12-26</sup>\r\n\r\n## 📢 論壇公告 - 標題示例\r\n\r\n歡迎大家來到 Clank.github.io 論壇公告區！這裡將發布社群最新消息與重要通知，請大家留意：\r\n\r\n### 📌 公告內容\r\n- 社群活動、聚會或線上活動通知  \r\n- 新增功能或討論區分類更新  \r\n- 重要訊息提醒或注意事項  \r\n\r\n### 🔗 相關連結（可選）\r\n- 論壇首頁 / 分類連結  \r\n- 活動詳情頁或公告文章  \r\n- 相關討論串  \r\n\r\n### 💡 備註\r\n- 請定期查看公告區，以掌握最新社群動態  \r\n- 如果對公告內容有問題或建議，請到「交流討論」分類留言  \r\n- 歡迎大家參與討論、分享意見，共同建設論壇\r\n\r\n</div>\r\n",
+      "url": "https://github.com/Clank9563/Clank.github.io/discussions/5",
+      "createdAt": "2025-12-26T02:06:00Z",
+      "updatedAt": "2025-12-26T02:16:06Z",
+      "author": {
+        "login": "Clank9563",
+        "avatarUrl": "https://avatars.githubusercontent.com/u/67671298?u=b0c8d36573e43692739fbe9502ba5e7ae319f49a&v=4",
+        "url": "https://github.com/Clank9563"
+      },
+      "category": {
+        "id": "DIC_kwDOP6FFPs4C0PqF",
+        "name": "Announcements",
+        "emoji": ":mega:"
+      },
+      "labels": {
+        "nodes": []
+      },
+      "comments": {
+        "totalCount": 0
+      },
+      "reactions": {
+        "totalCount": 0
+      }
+    }
+  ]
+}
