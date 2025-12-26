@@ -10,6 +10,15 @@
 </head>
 
 <body>
+    <script>
+        window.onerror = function (msg, url, line, col, error) {
+            alert("❌ 錯誤偵測:\n" + msg + "\n\n檔案: " + url + "\n行數: " + line);
+            return false;
+        };
+        window.addEventListener('unhandledrejection', function (event) {
+            alert("❌ 非同步錯誤:\n" + event.reason);
+        });
+    </script>
     <!-- 導航列 -->
     <nav class="navbar">
         <div class="container navbar-content">

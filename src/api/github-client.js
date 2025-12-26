@@ -621,17 +621,24 @@ class GitHubClient {
     }
 
     try {
-      // 加上 timestamp 避免快取
-      const response = await fetch(`data.json?t=${new Date().getTime()}`);
+      console.log('Fetching static data from data.json...');
+      const response = await fetch('data.json?t=' + new Date().getTime()); // 防止快取
+
       if (!response.ok) {
-        throw new Error('無法載入靜態數據');
+        throw new Error(`Failed to load data.json: ${response.status} ${response.statusText}`);
       }
+
       this._staticData = await response.json();
+      console.log('Static data loaded:', this._staticData);
       return this._staticData;
     } catch (error) {
       console.error('Fetch static data failed:', error);
-      // 如果 data.json 不存在（例如剛部署還沒產生），回傳空結構以免報錯
-      return { discussions: [], categories: [], labels: [] };
+      // 確保即使失敗也回傳正確的空結構，避免 UI 炸裂
+      return {
+        discussions: { nodes: [] },
+        discussionCategories: { nodes: [] },
+        labels: { nodes: [] }
+      };
     }
   }
 
