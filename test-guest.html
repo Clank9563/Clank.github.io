@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <title>訪客模式測試</title>
+</head>
+
+<body>
+    <h1>訪客模式測試結果</h1>
+    <div id="result">測試中...</div>
+
+    <script type="module">
+        import GitHubClient from './src/api/github-client.js';
+
+        async function runTest() {
+            const container = document.getElementById('result');
+            try {
+                // 初始化 Client
+                const client = new GitHubClient('Clank9563', 'Clank.github.io');
+
+                // 強制登出 (模擬訪客)
+                client.setToken(null);
+
+                // 測試 1: 取得討論列表
+                console.log('Testing getDiscussions...');
+                const discussions = await client.getDiscussions();
+
+                if (discussions.length > 0 && discussions[0].title === "訪客模式測試貼文") {
+                    container.innerHTML = `
+                        <h2 style="color: green;">✅ 測試成功！</h2>
+                        <p>成功讀取到靜態 data.json 中的文章：<b>${discussions[0].title}</b></p>
+                        <hr>
+                        <h3>分類測試:</h3>
+                        <div id="cats"></div>
+                    `;
+                } else {
+                    container.innerHTML = `<h2 style="color: red;">❌ 測試失敗</h2><p>無法讀取到預期的靜態文章。</p>`;
+                    return;
+                }
+
+                // 測試 2: 取得分類
+                const categories = await client.getCategories();
+                const catsDiv = document.getElementById('cats');
+                if (categories.length > 0) {
+                    catsDiv.innerHTML = `成功讀取到 ${categories.length} 個分類 (例如: ${categories[0].name})`;
+                } else {
+                    catsDiv.innerHTML = `<span style="color: red;">讀取分類失敗</span>`;
+                }
+
+            } catch (error) {
+                container.innerHTML = `<h2 style="color: red;">❌ 發生錯誤</h2><pre>${error.message}</pre>`;
+                console.error(error);
+            }
+        }
+
+        runTest();
+    </script>
+</body>
+
+</html>
