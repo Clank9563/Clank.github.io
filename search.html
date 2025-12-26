@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>搜尋結果 - clank的個人博客</title>
+    <link rel="stylesheet" href="src/styles/main.css">
+</head>
+
+<body>
+    <!-- 導航列 -->
+    <nav class="navbar">
+        <div class="container navbar-content">
+            <a href="index.html" class="navbar-brand">
+                💬 clank的個人博客
+            </a>
+            <div class="navbar-actions">
+                <div id="userInfo"></div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 主要內容 -->
+    <main class="main-content">
+        <div class="container">
+            <a href="index.html" class="back-link">
+                ← 返回首頁
+            </a>
+
+            <!-- 搜尋框 -->
+            <div class="search-container" style="max-width: 100%; margin-top: 2rem;">
+                <span class="search-icon">🔍</span>
+                <input type="text" id="searchInput" class="search-input" placeholder="搜尋討論標題或內容..." autofocus>
+                <button id="clearSearch" class="search-clear" style="display: none;">✕</button>
+            </div>
+
+            <!-- 搜尋結果標題 -->
+            <div class="discussions-header" style="margin-top: 2rem;">
+                <h1 id="resultsTitle">搜尋結果</h1>
+            </div>
+
+            <!-- 搜尋結果列表 -->
+            <div class="discussions-grid" id="searchResults">
+                <div class="empty-state">
+                    <div class="empty-state-icon">🔍</div>
+                    <h2>輸入關鍵字開始搜尋</h2>
+                    <p>搜尋討論標題和內容</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 配置 -->
+    <script>
+        window.GITHUB_CONFIG = {
+            owner: 'Clank9563',
+            repo: 'Clank.github.io'
+        };
+    </script>
+
+    <!-- 主應用程式 -->
+    <script type="module">
+        import GitHubClient from './src/api/github-client.js';
+        import * as auth from './src/api/auth.js';
+        import * as ui from './src/js/ui.js';
+        import { handleError, getQueryParam } from './src/js/utils.js';
+
+        const client = new GitHubClient(
+            window.GITHUB_CONFIG.owner,
+            window.GITHUB_CONFIG.repo
+        );
+
+        let currentUser = null;
+        let searchTimeout = null;
+
+        // 載入使用者資訊
+        async function loadUser() {
+            try {
+                currentUser = await client.getCurrentUser();
+                ui.renderUserInfo(currentUser, document.getElementById('userInfo'));
+
+                const loginBtn = document.getElementById('loginBtn');
+                const logoutBtn = document.getElementById('logoutBtn');
+
+                if (loginBtn) {
+                    loginBtn.addEventListener('click', auth.login);
+                }
+
+                if (logoutBtn) {
+                    logoutBtn.addEventListener('click', auth.logout);
+                }
+            } catch (error) {
+                console.error('Failed to load user:', error);
+                ui.renderUserInfo(null, document.getElementById('userInfo'));
+
+                const loginBtn = document.getElementById('loginBtn');
+                if (loginBtn) {
+                    loginBtn.addEventListener('click', auth.login);
+                }
+            }
+        }
+
+        // 執行搜尋
+        async function performSearch(query) {
+            const resultsContainer = document.getElementById('searchResults');
+            const resultsTitle = document.getElementById('resultsTitle');
+
+            if (!query || query.trim() === '') {
+                resultsContainer.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">🔍</div>
+                        <h2>輸入關鍵字開始搜尋</h2>
+                        <p>搜尋討論標題和內容</p>
+                    </div>
+                `;
+                resultsTitle.textContent = '搜尋結果';
+                return;
+            }
+
+            try {
+                ui.renderLoading(resultsContainer);
+                resultsTitle.textContent = `搜尋「${query}」...`;
+
+                const result = await client.searchDiscussions(query);
+
+                resultsTitle.textContent = `找到 ${result.totalCount} 個結果`;
+
+                if (result.nodes.length === 0) {
+                    resultsContainer.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-state-icon">😕</div>
+                            <h2>找不到相關討論</h2>
+                            <p>試試其他關鍵字</p>
+                        </div>
+                    `;
+                } else {
+                    ui.renderDiscussions(result.nodes, resultsContainer);
+                }
+            } catch (error) {
+                ui.renderError(handleError(error, 'searchDiscussions'), resultsContainer);
+                resultsTitle.textContent = '搜尋失敗';
+            }
+        }
+
+        // 搜尋輸入事件
+        const searchInput = document.getElementById('searchInput');
+        const clearBtn = document.getElementById('clearSearch');
+
+        searchInput.addEventListener('input', (e) => {
+            const query = e.target.value;
+
+            // 顯示/隱藏清除按鈕
+            clearBtn.style.display = query ? 'block' : 'none';
+
+            // 防抖：延遲搜尋
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                performSearch(query);
+            }, 500);
+        });
+
+        // 清除搜尋
+        clearBtn.addEventListener('click', () => {
+            searchInput.value = '';
+            clearBtn.style.display = 'none';
+            performSearch('');
+        });
+
+        // 從 URL 獲取搜尋關鍵字
+        const urlQuery = getQueryParam('q');
+        if (urlQuery) {
+            searchInput.value = decodeURIComponent(urlQuery);
+            performSearch(urlQuery);
+        }
+
+        // 初始化
+        loadUser();
+    </script>
+</body>
+
+</html>
